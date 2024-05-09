@@ -1,0 +1,49 @@
+pipeline {
+    agent any
+    
+    stages {
+        stage('GIT') { 
+            steps {
+                git url:'https://github.com/eyadrihmi/front-devops.git'
+            }
+        }
+    
+       
+        stage('Docker Image Build'){
+            steps{
+                script{
+                    sh 'docker image build -t $JOB_NAME:v1.$BUILD_ID .'
+		    sh 'docker image tag $JOB_NAME:v1.$BUILD_ID eyadrihmi/$JOB_NAME:v1.$BUILD_ID'
+		    sh 'docker image tag $JOB_NAME:v1.$BUILD_ID eyadrihmi/$JOB_NAME:latest'
+                }  
+            }
+        }
+        
+        stage('Push image to the DockerHub'){
+            steps{
+                script{
+                  withCredentials([string(credentialsId: 'github_cred', variable: 'docker_hub_cred')]) {
+		               sh 'docker login -u eyadrihmi -p ${docker_hub_cred} docker.io'
+			             sh 'docker image push eyadrihmi/$JOB_NAME:v1.$BUILD_ID'
+			             sh 'docker image push eyadrihmi/$JOB_NAME:latest' 
+                    }
+                }  
+            }
+        }
+        
+          stage('Deploying App to Kubernetes') {
+               steps {
+                    script {
+                      kubernetesDeploy(configs: "deploymentservice.yml", kubeconfigId: "kubernetes")
+        }
+      }
+    }
+        stage('Sending email'){
+           steps {
+            mail bcc: '', body: '''.. ,
+            Pipeline successfully executed  .
+            Keep Up The Good Work''', cc: '', from: '', replyTo: '', subject: 'Devops Pipeline', to: 'drihmieya@gmail.com'
+            }
+       }
+    }
+}

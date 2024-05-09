@@ -1,0 +1,19 @@
+- hosts: host
+  become: true
+  tasks:
+  - name: copy deployment file to kubernetes master 
+    copy:
+      src: deployment.yaml
+      dest: /root/
+  - name: copy service file to kubernetes master 
+    copy:
+      src: service.yaml
+      dest: /root/
+  - name: delete old deployment
+    command: kubectl delete -f /root/deployment.yaml
+  - name: delete old service
+    command: kubectl delete -f /root/service.yaml
+  - name: create new deployment
+    command: kubectl apply -f /root/deployment.yaml
+  - name: create new service
+    command: kubectl apply -f /root/service.yaml
