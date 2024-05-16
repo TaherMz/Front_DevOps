@@ -1,7 +1,7 @@
 FROM node:16.14-alpine3.14
     WORKDIR /usr/src/app
     COPY package.json package-lock.json ./
-    RUN npm i -g @angular/cli
+    RUN npm i -g @angular/cli@12.0.1
     
     # Install app dependencies:
     RUN npm i 
